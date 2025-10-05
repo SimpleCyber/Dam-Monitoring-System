@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Realistic 3D Dam & Reservoir Simulation</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to bottom, #1a2980, #26d0ce);
+      }
+      #container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #info {
+        position: absolute;
+        top: 10px;
+        width: 100%;
+        text-align: center;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 12px;
+        z-index: 100;
+        font-size: 18px;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(5px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      #controls {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        z-index: 100;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-width: 250px;
+        cursor: move;
+        resize: both;
+        overflow: auto;
+        max-width: 500px;
+        max-height: 80vh;
+      }
+      #controls:hover {
+        border-color: rgba(52, 152, 219, 0.5);
+      }
+      .resize-handle {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 20px;
+        height: 20px;
+        cursor: nwse-resize;
+        background: linear-gradient(
+          135deg,
+          transparent 50%,
+          rgba(52, 152, 219, 0.5) 50%
+        );
+        border-bottom-right-radius: 15px;
+      }
+      button {
+        background: linear-gradient(to bottom, #3498db, #2980b9);
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 5px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        font-weight: 500;
+        letter-spacing: 0.5px;
+      }
+      button:hover {
+        background: linear-gradient(to bottom, #2980b9, #3498db);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      #waterLevel {
+        width: 150px;
+        margin: 10px 5px;
+        accent-color: #3498db;
+      }
+      .control-group {
+        margin: 15px 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .control-group:last-child {
+        border-bottom: none;
+      }
+      label {
+        display: inline-block;
+        width: 120px;
+        font-weight: 500;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        margin-top: 5px;
+      }
+      .value-display {
+        margin-left: 10px;
+        font-weight: bold;
+        color: #3498db;
+        min-width: 30px;
+      }
+      .control-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #3498db;
+        font-size: 16px;
+      }
+      .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      .status-on {
+        background-color: #2ecc71;
+        box-shadow: 0 0 8px #2ecc71;
+      }
+      .status-off {
+        background-color: #e74c3c;
+      }
+      #compass {
+        position: absolute;
+        top: 80px;
+        right: 20px;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 15px;
+        border-radius: 50%;
+        z-index: 100;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .compass-direction {
+        position: absolute;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+      }
+      #north {
+        top: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #east {
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      #south {
+        bottom: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #west {
+        left: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .compass-center {
+        width: 6px;
+        height: 6px;
+        background-color: #e74c3c;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <div id="compass">
+      <div class="compass-direction" id="north">N</div>
+      <div class="compass-direction" id="east">E</div>
+      <div class="compass-direction" id="south">S</div>
+      <div class="compass-direction" id="west">W</div>
+      <div class="compass-center"></div>
+    </div>
+    <div id="controls">
+  <button id="startPanel">Start Simulation</button>
+  <div id="panelContent" style="display: none;">
+    <div class="resize-handle"></div>
+    <div class="control-group">
+      <div class="control-title">Gate Control</div>
+      <button id="openGate">Open Gate</button>
+      <button id="closeGate">Close Gate</button>
+      <div style="margin-top: 10px">
+        <span class="status-indicator" id="gateStatus"></span>
+        <span id="gateStatusText">Gate: Closed</span>
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="control-title">Water Level</div>
+      <div class="slider-container">
+        <label for="waterLevel">Level:</label>
+        <input type="range" id="waterLevel" min="1" max="10" step="0.1" value="4"/>
+        <span class="value-display" id="waterLevelValue">4.0</span>
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="control-title">View Options</div>
+      <button id="toggleWireframe">Toggle Wireframe</button>
+      <button id="reset">Reset Simulation</button>
+    </div>
+  </div>
+</div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+
+    <script>
+      // Draggable and resizable control panel
+      const controlsPanel = document.getElementById("controls");
+      let isDragging = false;
+      let currentX;
+      let currentY;
+      let initialX;
+      let initialY;
+      let xOffset = 0;
+      let yOffset = 0;
+
+
+      const panelContent = document.getElementById("panelContent");
+const startButton = document.getElementById("startPanel");
+
+
+// Expand panel when "Start" button is clicked
+startButton.addEventListener("click", (e) => {
+  panelContent.style.display = "block";
+  startButton.style.display = "none"; // hide start button
+});
+
+// Collapse panel when clicking outside
+document.addEventListener("click", (e) => {
+  if (
+    !controlsPanel.contains(e.target) && // clicked outside panel
+    panelContent.style.display === "block"
+  ) {
+    panelContent.style.display = "none";
+    startButton.style.display = "block"; // show start button again
+  }
+});
+
+// Prevent clicks inside the panel from closing it
+controlsPanel.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+      controlsPanel.addEventListener("mousedown", dragStart);
+      document.addEventListener("mousemove", drag);
+      document.addEventListener("mouseup", dragEnd);
+
+      function dragStart(e) {
+        // Don't drag if clicking on buttons, inputs, or resize handle
+        if (
+          e.target.tagName === "BUTTON" ||
+          e.target.tagName === "INPUT" ||
+          e.target.classList.contains("resize-handle")
+        ) {
+          return;
+        }
+
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+
+        if (
+          e.target === controlsPanel ||
+          e.target.classList.contains("control-title") ||
+          e.target.classList.contains("control-group")
+        ) {
+          isDragging = true;
+        }
+      }
+
+      function drag(e) {
+        if (isDragging) {
+          e.preventDefault();
+          currentX = e.clientX - initialX;
+          currentY = e.clientY - initialY;
+
+          xOffset = currentX;
+          yOffset = currentY;
+
+          setTranslate(currentX, currentY, controlsPanel);
+        }
+      }
+
+      function dragEnd(e) {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+      }
+
+      function setTranslate(xPos, yPos, el) {
+        el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+      }
+
+      // Initialize the scene
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x87ceeb, 30, 100);
+
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x87ceeb);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      document.getElementById("container").appendChild(renderer.domElement);
+
+      // Add orbit controls
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2.1;
+      controls.minDistance = 5;
+      controls.maxDistance = 80;
+
+      // Position the camera
+      camera.position.set(20, 15, 25);
+      controls.update();
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+      scene.add(ambientLight);
+
+      // Main sun light
+      const directionalLight = new THREE.DirectionalLight(0xfff4e6, 1.2);
+      directionalLight.position.set(30, 40, 20);
+      directionalLight.castShadow = true;
+      directionalLight.shadow.mapSize.width = 4096;
+      directionalLight.shadow.mapSize.height = 4096;
+      directionalLight.shadow.camera.near = 0.5;
+      directionalLight.shadow.camera.far = 100;
+      directionalLight.shadow.camera.left = -40;
+      directionalLight.shadow.camera.right = 40;
+      directionalLight.shadow.camera.top = 40;
+      directionalLight.shadow.camera.bottom = -40;
+      directionalLight.shadow.bias = -0.0001;
+      scene.add(directionalLight);
+
+      // Fill light for softer shadows
+      const fillLight = new THREE.DirectionalLight(0x9fc5e8, 0.3);
+      fillLight.position.set(-20, 20, -10);
+      scene.add(fillLight);
+
+      // Hemisphere light for natural sky/ground lighting
+      const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x6b8e23, 0.5);
+      scene.add(hemiLight);
+
+      const groundGeometry = new THREE.PlaneGeometry(150, 150);
+      const groundMaterial = new THREE.MeshBasicMaterial({
+        color: 0x245020, // Green color
+      });
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -2; // Position it lower so other objects are visible
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      const damGroup = new THREE.Group();
+
+      // Main dam body with curve
+      const damSegments = 25;
+      const damWidth = 30;
+      const damHeight = 12;
+      const damThickness = 1;
+      const damCurve = 0.3; // Curvature factor
+
+      for (let i = 0; i < damSegments; i++) {
+        const angle = (i / (damSegments - 1) - 0.5) * Math.PI * 0.4;
+        const x = Math.sin(angle) * damWidth * 0.5;
+        const z = -Math.cos(angle) * damWidth * 0.5 * damCurve - 6;
+
+        const segmentGeometry = new THREE.BoxGeometry(
+          (damWidth / damSegments) * 1.2,
+          damHeight,
+          damThickness
+        );
+
+        const damMaterial = new THREE.MeshPhongMaterial({
+          color: 0x6b6b6b,
+          shininess: 10,
+          specular: 0x222222,
+        });
+
+        const segment = new THREE.Mesh(segmentGeometry, damMaterial);
+        segment.position.set(x, damHeight / 2, z);
+        segment.rotation.y = angle;
+        segment.castShadow = true;
+        segment.receiveShadow = true;
+        damGroup.add(segment);
+      }
+
+      // Dam crest/walkway
+      const crestGeometry = new THREE.BoxGeometry(damWidth - 10, 0.5, 3);
+      const crestMaterial = new THREE.MeshPhongMaterial({
+        color: 0x505050,
+        shininess: 20,
+      });
+      const crest = new THREE.Mesh(crestGeometry, crestMaterial);
+      crest.position.set(0, damHeight, -5);
+      crest.castShadow = true;
+      crest.receiveShadow = true;
+      damGroup.add(crest);
+
+      // Safety railings
+      const railingGeometry = new THREE.BoxGeometry(damWidth - 10, 0.8, 0.1);
+      const railingMaterial = new THREE.MeshPhongMaterial({
+        color: 0x8b4513,
+        shininess: 30,
+      });
+
+      const railing1 = new THREE.Mesh(railingGeometry, railingMaterial);
+      railing1.position.set(0, damHeight + 0.8, -3.5);
+      railing1.castShadow = true;
+      damGroup.add(railing1);
+
+      const railing2 = new THREE.Mesh(railingGeometry, railingMaterial);
+      railing2.position.set(0, damHeight + 0.8, -6.5);
+      railing2.castShadow = true;
+      damGroup.add(railing2);
+
+      // Vertical railing posts
+      const postGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.8, 8);
+      for (let i = -7; i <= 7; i += 2) {
+        const post1 = new THREE.Mesh(postGeometry, railingMaterial);
+        post1.position.set(i, damHeight + 0.4, -3.5);
+        post1.castShadow = true;
+        damGroup.add(post1);
+
+        const post2 = new THREE.Mesh(postGeometry, railingMaterial);
+        post2.position.set(i, damHeight + 0.4, -6.5);
+        post2.castShadow = true;
+        damGroup.add(post2);
+      }
+
+      scene.add(damGroup);
+
+      const spillwayGroup = new THREE.Group();
+
+      // Main spillway channel
+      const spillwayGeometry = new THREE.BoxGeometry(10, 1, 2);
+      const spillwayMaterial = new THREE.MeshPhongMaterial({
+        color: 0x7a7a7a,
+        shininess: 40,
+      });
+      const spillway = new THREE.Mesh(spillwayGeometry, spillwayMaterial);
+      spillway.position.set(0, damHeight - 1, 5);
+      spillway.castShadow = true;
+      spillway.receiveShadow = true;
+      spillwayGroup.add(spillway);
+
+      // Spillway gates
+      for (let i = -3; i <= 3; i += 3) {
+        const gateFrameGeometry = new THREE.BoxGeometry(2.5, 2, 0.3);
+        const gateFrame = new THREE.Mesh(gateFrameGeometry, spillwayMaterial);
+        gateFrame.position.set(i, damHeight - 0.5, 5);
+        gateFrame.castShadow = true;
+        spillwayGroup.add(gateFrame);
+      }
+
+      scene.add(spillwayGroup);
+
+      const wallMaterial = new THREE.MeshPhongMaterial({
+        color: 0x5a4a3a,
+        shininess: 5,
+        flatShading: true,
+      });
+
+      // Left wall with natural slope
+      const leftWallGeometry = new THREE.BoxGeometry(3, 12, 18);
+      const leftWallVertices = leftWallGeometry.attributes.position;
+      for (let i = 0; i < leftWallVertices.count; i++) {
+        const x = leftWallVertices.getX(i);
+        const y = leftWallVertices.getY(i);
+        const z = leftWallVertices.getZ(i);
+        leftWallVertices.setX(i, x + Math.random() * 0.3);
+        leftWallVertices.setY(i, y + Math.random() * 0.3);
+        leftWallVertices.setZ(i, z + Math.random() * 0.3);
+      }
+      leftWallVertices.needsUpdate = true;
+      leftWallGeometry.computeVertexNormals();
+
+      const leftWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
+      leftWall.position.set(-10, 6, 0);
+      leftWall.castShadow = true;
+      leftWall.receiveShadow = true;
+      scene.add(leftWall);
+
+      // Right wall
+      const rightWallGeometry = new THREE.BoxGeometry(3, 12, 18);
+      const rightWallVertices = rightWallGeometry.attributes.position;
+      for (let i = 0; i < rightWallVertices.count; i++) {
+        const x = rightWallVertices.getX(i);
+        const y = rightWallVertices.getY(i);
+        const z = rightWallVertices.getZ(i);
+        rightWallVertices.setX(i, x + Math.random() * 0.3);
+        rightWallVertices.setY(i, y + Math.random() * 0.3);
+        rightWallVertices.setZ(i, z + Math.random() * 0.3);
+      }
+      rightWallVertices.needsUpdate = true;
+      rightWallGeometry.computeVertexNormals();
+
+      const rightWall = new THREE.Mesh(rightWallGeometry, wallMaterial);
+      rightWall.position.set(10, 6, 0);
+      rightWall.castShadow = true;
+      rightWall.receiveShadow = true;
+      scene.add(rightWall);
+
+      // Back wall
+      const backWallGeometry = new THREE.BoxGeometry(20, 12, 3);
+      const backWallVertices = backWallGeometry.attributes.position;
+      for (let i = 0; i < backWallVertices.count; i++) {
+        const x = backWallVertices.getX(i);
+        const y = backWallVertices.getY(i);
+        const z = backWallVertices.getZ(i);
+        backWallVertices.setX(i, x + Math.random() * 0.3);
+        backWallVertices.setY(i, y + Math.random() * 0.3);
+        backWallVertices.setZ(i, z + Math.random() * 0.3);
+      }
+      backWallVertices.needsUpdate = true;
+      backWallGeometry.computeVertexNormals();
+
+      const backWall = new THREE.Mesh(backWallGeometry, wallMaterial);
+      backWall.position.set(0, 6, 8);
+      backWall.castShadow = true;
+      backWall.receiveShadow = true;
+      scene.add(backWall);
+
+      const gateGroup = new THREE.Group();
+
+      const gateFrameGeometry = new THREE.BoxGeometry(8, 6, 0.3);
+      const gateFrameMaterial = new THREE.MeshPhongMaterial({
+        color: 0x2c3e50,
+        shininess: 80,
+        specular: 0x444444,
+      });
+      const gateFrame = new THREE.Mesh(gateFrameGeometry, gateFrameMaterial);
+      gateFrame.castShadow = true;
+      gateFrame.receiveShadow = true;
+      gateGroup.add(gateFrame);
+
+      // Gate horizontal bars
+      const barGeometry = new THREE.BoxGeometry(7.5, 0.2, 0.2);
+      for (let i = -2.5; i <= 2.5; i += 1) {
+        const bar = new THREE.Mesh(barGeometry, gateFrameMaterial);
+        bar.position.set(0, i, 0.1);
+        bar.castShadow = true;
+        gateGroup.add(bar);
+      }
+
+      // Gate vertical bars
+      const vBarGeometry = new THREE.BoxGeometry(0.2, 5.5, 0.2);
+      for (let i = -3; i <= 3; i += 1.5) {
+        const vBar = new THREE.Mesh(vBarGeometry, gateFrameMaterial);
+        vBar.position.set(i, 0, 0.1);
+        vBar.castShadow = true;
+        gateGroup.add(vBar);
+      }
+
+      gateGroup.position.set(0, 3, -5.5);
+      scene.add(gateGroup);
+      const gate = gateGroup; // Reference for animation
+
+
+
+
+
+
+
+
+
+
+
+      
+      const waterGeometry = new THREE.PlaneGeometry(18, 16, 150, 150);
+      const waterMaterial = new THREE.MeshPhongMaterial({
+        color: 0x1e5f74,
+        transparent: true,
+        opacity: 0.75,
+        side: THREE.DoubleSide,
+        wireframe: false,
+        shininess: 150,
+        specular: 0x8fccdd,
+        reflectivity: 0.8,
+      });
+      const water = new THREE.Mesh(waterGeometry, waterMaterial);
+      water.rotation.x = -Math.PI / 2;
+      water.position.y = 4;
+      water.receiveShadow = true;
+      scene.add(water);
+
+
+      
+// Create a group for the river system
+const riverGroup = new THREE.Group();
+
+// Create river after the dam with flow direction
+const riverGeometry = new THREE.PlaneGeometry(120, 8, 150, 150);
+const riverMaterial = new THREE.MeshPhongMaterial({
+    color: 0x006994,
+    transparent: true,
+    opacity: 0.85,
+    side: THREE.DoubleSide,
+    wireframe: false,
+    shininess: 100
+});
+const river = new THREE.Mesh(riverGeometry, riverMaterial);
+river.rotation.x = -Math.PI / 2;
+river.position.set(15, 0.1, 0);
+river.receiveShadow = true;
+riverGroup.add(river);
+
+// Add rocks and details to the riverbed
+const rockGeometry = new THREE.SphereGeometry(0.5, 6, 6);
+const rockMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
+
+for (let i = 0; i < 20; i++) {
+    const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+    rock.position.set(
+        Math.random() * 120 + 5, 
+        0.3, 
+        Math.random() * 6 - 7
+    );
+    rock.scale.set(
+        Math.random() * 0.5 + 0.5,
+        Math.random() * 0.3 + 0.3,
+        Math.random() * 0.5 + 0.5
+    );
+    rock.castShadow = true;
+    riverGroup.add(rock);
+}
+
+// ✅ Rotate the entire river system by 90 degrees
+riverGroup.rotation.y = Math.PI / 2;
+
+// Add river group to scene
+scene.add(riverGroup);
+
+
+    
+
+
+
+
+
+
+
+
+
+
+      const treeTrunkMaterial = new THREE.MeshPhongMaterial({
+  color: 0x4a3520,
+  flatShading: true,
+});
+const treeCrownMaterial = new THREE.MeshPhongMaterial({
+  color: 0x2d5016,
+  flatShading: true,
+});
+
+// Tree creation helper
+function createTree(x, z) {
+  const tree = new THREE.Group();
+
+  const trunkHeight = THREE.MathUtils.randFloat(1.5, 3);
+  const trunkRadiusTop = THREE.MathUtils.randFloat(0.1, 0.3);
+  const trunkRadiusBottom = THREE.MathUtils.randFloat(0.15, 0.35);
+  const trunkGeom = new THREE.CylinderGeometry(trunkRadiusTop, trunkRadiusBottom, trunkHeight, 8);
+  const trunk = new THREE.Mesh(trunkGeom, treeTrunkMaterial);
+  trunk.position.y = trunkHeight / 2;
+  trunk.castShadow = true;
+  tree.add(trunk);
+
+  const crownLayers = Math.floor(Math.random() * 3) + 2; // 2-4 layers
+  let crownHeightOffset = trunkHeight;
+  for (let i = 0; i < crownLayers; i++) {
+    const crownHeight = THREE.MathUtils.randFloat(1, 2.5);
+    const crownRadius = THREE.MathUtils.randFloat(0.8, 1.5) * (1 - i * 0.2);
+    const crownGeom = new THREE.ConeGeometry(crownRadius, crownHeight, 8);
+    const crown = new THREE.Mesh(crownGeom, treeCrownMaterial);
+    crown.position.y = crownHeightOffset + crownHeight / 2;
+    crownHeightOffset += crownHeight * 0.6;
+    crown.castShadow = true;
+    tree.add(crown);
+  }
+
+  tree.position.set(x, 0, z);
+  tree.scale.setScalar(THREE.MathUtils.randFloat(0.8, 1.2));
+  tree.rotation.y = Math.random() * Math.PI * 2;
+
+  scene.add(tree);
+}
+
+// Random tree placement parameters
+const treeCount = 100;
+const minX = -40, maxX = 40;
+const minZ = -40, maxZ = 40;
+const middleLaneWidth = 20; // z between -4 and 4 will be empty
+
+for (let i = 0; i < treeCount; i++) {
+  const x = THREE.MathUtils.randFloat(minX, maxX);
+
+  let z;
+  while (true) {
+    z = THREE.MathUtils.randFloat(minZ, maxZ);
+    if (z < -middleLaneWidth / 2 || z > middleLaneWidth / 2) break; // skip middle lane
+  }
+
+  createTree(x, z);
+}
+
+
+
+
+
+      
+
+
+
+
+
+
+      const mountainGeometry = new THREE.ConeGeometry(6, 12, 8);
+      const mountainVertices = mountainGeometry.attributes.position;
+
+      // Add rocky texture to mountains
+      for (let i = 0; i < mountainVertices.count; i++) {
+        const x = mountainVertices.getX(i);
+        const y = mountainVertices.getY(i);
+        const z = mountainVertices.getZ(i);
+        mountainVertices.setX(i, x + (Math.random() - 0.5) * 0.5);
+        mountainVertices.setZ(i, z + (Math.random() - 0.5) * 0.5);
+      }
+      mountainVertices.needsUpdate = true;
+
+      const mountainPositions = [
+        { x: -25, z: 25, color: 0x3a5a2a, scale: 7.2 },
+        { x: 25, z: 25, color: 0x3a5a2a, scale: 6.1 },
+        { x: -30, z: -25, color: 0x4a6a3a, scale: 3.0 },
+        { x: 30, z: -25, color: 0x4a6a3a, scale: 1.0 },
+        { x: -20, z: 30, color: 0x2a4a1a, scale: 7.3 },
+        { x: 20, z: 30, color: 0x2a4a1a, scale: 8.4 },
+        { x: 0, z: 35, color: 0x3a5a2a, scale: 5.5 },
+        { x: -35, z: 10, color: 0x4a6a3a, scale: 4.9 },
+        { x: 35, z: 10, color: 0x4a6a3a, scale: 4.9 },
+      ];
+
+      for (let i = 0; i < mountainPositions.length; i++) {
+        const mountainMat = new THREE.MeshPhongMaterial({
+          color: mountainPositions[i].color,
+          flatShading: true,
+          shininess: 5,
+        });
+
+        const mountain = new THREE.Mesh(mountainGeometry.clone(), mountainMat);
+        mountain.position.set(
+          mountainPositions[i].x,
+          6,
+          mountainPositions[i].z
+        );
+        mountain.scale.setScalar(mountainPositions[i].scale);
+        mountain.rotation.y = Math.random() * Math.PI * 2;
+        mountain.castShadow = true;
+        mountain.receiveShadow = true;
+        scene.add(mountain);
+      }
+
+      // Animals (keeping existing implementation)
+      function createDeer(x, z) {
+        const deerGroup = new THREE.Group();
+
+        // Body
+        const bodyGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+        const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.scale.set(1.5, 0.8, 1);
+        deerGroup.add(body);
+
+        // Head
+        const headGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+        const head = new THREE.Mesh(headGeometry, bodyMaterial);
+        head.position.set(0.8, 0.2, 0);
+        deerGroup.add(head);
+
+        // Legs
+        const legGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.6, 6);
+        for (let i = 0; i < 4; i++) {
+          const leg = new THREE.Mesh(legGeometry, bodyMaterial);
+          const xPos = i < 2 ? -0.3 : 0.3;
+          const zPos = i % 2 === 0 ? -0.2 : 0.2;
+          leg.position.set(xPos, -0.5, zPos);
+          deerGroup.add(leg);
+        }
+
+        // Antlers (simple version)
+        const antlerGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 4);
+        const antlerMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
+        const leftAntler = new THREE.Mesh(antlerGeometry, antlerMaterial);
+        leftAntler.position.set(0.1, 0.4, 0.1);
+        leftAntler.rotation.z = Math.PI / 6;
+        deerGroup.add(leftAntler);
+
+        const rightAntler = new THREE.Mesh(antlerGeometry, antlerMaterial);
+        rightAntler.position.set(0.1, 0.4, -0.1);
+        rightAntler.rotation.z = -Math.PI / 6;
+        deerGroup.add(rightAntler);
+
+        deerGroup.position.set(x, 0.5, z);
+        deerGroup.rotation.y = Math.random() * Math.PI * 2;
+        deerGroup.scale.setScalar(0.8);
+
+        return deerGroup;
+      }
+
+      function createBird(x, y, z) {
+        const birdGroup = new THREE.Group();
+
+        // Body
+        const bodyGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+        const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        birdGroup.add(body);
+
+        // Wings
+        const wingGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+        wingGeometry.scale(2, 0.3, 1);
+        const wingMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+
+        const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+        leftWing.position.set(0, 0, 0.2);
+        leftWing.rotation.x = Math.PI / 4;
+        birdGroup.add(leftWing);
+
+        const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+        rightWing.position.set(0, 0, -0.2);
+        rightWing.rotation.x = -Math.PI / 4;
+        birdGroup.add(rightWing);
+
+        // Beak
+        const beakGeometry = new THREE.ConeGeometry(0.05, 0.1, 4);
+        const beakMaterial = new THREE.MeshPhongMaterial({ color: 0xffa500 });
+        const beak = new THREE.Mesh(beakGeometry, beakMaterial);
+        beak.position.set(0.2, 0, 0);
+        beak.rotation.z = Math.PI / 2;
+        birdGroup.add(beak);
+
+        birdGroup.position.set(x, y, z);
+
+        return birdGroup;
+      }
+
+   // Helper function to get random number in a range
+function randomRange(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+// Add 20 more deer randomly
+for (let i = 0; i < 30; i++) {
+  const x = randomRange(-40, 40); // adjust range as needed
+  const z = randomRange(-40, 40);
+  const deer = createDeer(x, z);
+  scene.add(deer);
+}
+
+// Add 20 more birds randomly
+for (let i = 0; i < 10; i++) {
+  const x = randomRange(-40, 40); // adjust range as needed
+  const y = randomRange(5, 20);   // birds have height
+  const z = randomRange(-40, 40);
+  const bird = createBird(x, y, z);
+  scene.add(bird);
+}
+
+
+      // Store original vertex positions for water animation
+      const originalWaterVertices = [];
+      for (let i = 0; i < waterGeometry.attributes.position.count; i++) {
+        originalWaterVertices.push(waterGeometry.attributes.position.getY(i));
+      }
+
+      const originalRiverVertices = [];
+      for (let i = 0; i < riverGeometry.attributes.position.count; i++) {
+        originalRiverVertices.push(riverGeometry.attributes.position.getY(i));
+      }
+
+      // Animation variables
+      let time = 0;
+      let isWireframe = false;
+      let gateOpen = false;
+      let waterFlowActive = false;
+      let currentWaterLevel = 4;
+
+      function animateWater() {
+        time += 0.015;
+
+        const waterPositions = waterGeometry.attributes.position;
+        const riverPositions = riverGeometry.attributes.position;
+
+        // Animate reservoir water with realistic patterns
+        for (let i = 0; i < waterPositions.count; i++) {
+          const x = waterPositions.getX(i);
+          const z = waterPositions.getZ(i);
+
+          // Multiple wave layers for realism
+          const wave1 = Math.sin(x * 0.3 + time * 0.8) * 0.06;
+          const wave2 = Math.cos(z * 0.25 + time * 1.2) * 0.05;
+          const wave3 =
+            Math.sin(Math.sqrt(x * x + z * z) * 0.4 + time * 1.5) * 0.03;
+          const wave4 = Math.cos(x * 0.15 - z * 0.15 + time) * 0.04;
+
+          waterPositions.setY(
+            i,
+            originalWaterVertices[i] + wave1 + wave2 + wave3 + wave4
+          );
+        }
+
+        waterPositions.needsUpdate = true;
+        waterGeometry.computeVertexNormals();
+
+        // Animate river with directional flow
+        for (let i = 0; i < riverPositions.count; i++) {
+          const x = riverPositions.getX(i);
+          const z = riverPositions.getZ(i);
+
+          const flowIntensity = gateOpen ? 0.5 : 0.2;
+          const flow1 = Math.sin(x * 1.5 - time * 4) * flowIntensity;
+          const flow2 = Math.cos(z * 1.0 - time * 3) * (flowIntensity * 0.7);
+          const flow3 =
+            Math.sin((x + z) * 0.8 - time * 2.5) * (flowIntensity * 0.4);
+
+          riverPositions.setY(
+            i,
+            originalRiverVertices[i] + flow1 + flow2 + flow3
+          );
+        }
+
+        riverPositions.needsUpdate = true;
+        riverGeometry.computeVertexNormals();
+      }
+
+      // Function to open the dam gate
+      function openGate() {
+        if (!gateOpen) {
+          const startY = gate.position.y;
+          const endY = 0.5;
+          const duration = 1500;
+          const startTime = Date.now();
+
+          function animateGate() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            gate.position.y = startY + (endY - startY) * easeProgress;
+
+            if (progress < 1) {
+              requestAnimationFrame(animateGate);
+            } else {
+              gateOpen = true;
+              waterFlowActive = true;
+              updateStatusIndicators();
+            }
+          }
+
+          animateGate();
+        }
+      }
+
+      function closeGate() {
+        if (gateOpen) {
+          const startY = gate.position.y;
+          const endY = 3;
+          const duration = 1500;
+          const startTime = Date.now();
+
+          function animateGate() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            gate.position.y = startY + (endY - startY) * easeProgress;
+
+            if (progress < 1) {
+              requestAnimationFrame(animateGate);
+            } else {
+              gateOpen = false;
+              waterFlowActive = false;
+              updateStatusIndicators();
+            }
+          }
+
+          animateGate();
+        }
+      }
+
+      function changeWaterLevel() {
+        currentWaterLevel = parseFloat(
+          document.getElementById("waterLevel").value
+        );
+        document.getElementById("waterLevelValue").textContent =
+          currentWaterLevel.toFixed(1);
+
+        const startY = water.position.y;
+        const endY = currentWaterLevel;
+        const duration = 1000;
+        const startTime = Date.now();
+
+        function animateWaterLevel() {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          water.position.y = startY + (endY - startY) * easeProgress;
+
+          if (progress < 1) {
+            requestAnimationFrame(animateWaterLevel);
+          }
+        }
+
+        animateWaterLevel();
+      }
+
+      function toggleWireframe() {
+        isWireframe = !isWireframe;
+        waterMaterial.wireframe = isWireframe;
+        riverMaterial.wireframe = isWireframe;
+      }
+
+      function resetSimulation() {
+        closeGate();
+        document.getElementById("waterLevel").value = 4;
+        document.getElementById("waterLevelValue").textContent = "4.0";
+        changeWaterLevel();
+        waterFlowActive = false;
+
+        const waterPositions = waterGeometry.attributes.position;
+        const riverPositions = riverGeometry.attributes.position;
+
+        for (let i = 0; i < waterPositions.count; i++) {
+          waterPositions.setY(i, originalWaterVertices[i]);
+        }
+
+        for (let i = 0; i < riverPositions.count; i++) {
+          riverPositions.setY(i, originalRiverVertices[i]);
+        }
+
+        waterPositions.needsUpdate = true;
+        riverPositions.needsUpdate = true;
+        waterGeometry.computeVertexNormals();
+        riverGeometry.computeVertexNormals();
+
+        updateStatusIndicators();
+      }
+
+      function updateStatusIndicators() {
+        const gateStatus = document.getElementById("gateStatus");
+        const gateStatusText = document.getElementById("gateStatusText");
+
+        if (gateOpen) {
+          gateStatus.className = "status-indicator status-on";
+          gateStatusText.textContent = "Gate: Open";
+        } else {
+          gateStatus.className = "status-indicator status-off";
+          gateStatusText.textContent = "Gate: Closed";
+        }
+      }
+
+      document.getElementById("openGate").addEventListener("click", openGate);
+      document.getElementById("closeGate").addEventListener("click", closeGate);
+      document
+        .getElementById("waterLevel")
+        .addEventListener("input", changeWaterLevel);
+      document
+        .getElementById("toggleWireframe")
+        .addEventListener("click", toggleWireframe);
+      document
+        .getElementById("reset")
+        .addEventListener("click", resetSimulation);
+
+      window.addEventListener("resize", function () {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        animateWater();
+        controls.update();
+        renderer.render(scene, camera);
+      }
+
+      document.getElementById("waterLevel").value = 4;
+      document.getElementById("waterLevelValue").textContent = "4.0";
+      updateStatusIndicators();
+      animate();
+    </script>
+  </body>
+</html>
