@@ -30,11 +30,21 @@
     <section class="col-span-2 bg-white p-4 rounded-xl shadow flex flex-col">
 
       <!-- Tabs -->
-      <div class="flex border-b mb-4">
-        <button id="realtimeTab" class="px-4 py-2 font-semibold border-b-2 border-blue-600">Real-Time</button>
-        <button id="alldataTab" class="px-4 py-2 font-semibold text-gray-600">All Data</button>
-        <button id="graphsTab" class="px-4 py-2 font-semibold text-gray-600">Graphs</button>
-      </div>
+<!-- Tabs -->
+<div class="flex border-b mb-4 items-center">
+  <button id="realtimeTab" class="px-4 py-2 font-semibold border-b-2 border-blue-600">Real-Time</button>
+  <button id="alldataTab" class="px-4 py-2 font-semibold text-gray-600">All Data</button>
+  <button id="graphsTab" class="px-4 py-2 font-semibold text-gray-600 flex items-center">
+    Graphs
+    <!-- Chart Type Selector (hidden until Graphs tab active) -->
+    <select id="chartType" class="ml-3 border rounded-lg p-1 text-sm hidden">
+      <option value="line">Line</option>
+      <option value="bar">Bar</option>
+      <option value="radar">Radar</option>
+    </select>
+  </button>
+</div>
+
 
       <!-- Real-Time Section -->
       <div id="realtimeSection" class="flex-1 space-y-4">
@@ -96,10 +106,12 @@
       </div>
 
       <!-- Graph Section -->
-      <div id="graphsSection" class="hidden flex-1 flex flex-col">
-        <h2 class="text-xl font-semibold mb-2">Sensor Graphs</h2>
-        <canvas id="sensorChart" class="bg-white p-4 rounded-xl shadow"></canvas>
-      </div>
+<div id="graphsSection" class="hidden flex-1 flex flex-col">
+  <div class="flex-1">
+    <canvas id="sensorChart" class="bg-white p-4 rounded-xl shadow w-full h-full"></canvas>
+  </div>
+</div>
+
 
     </section>
 
@@ -141,9 +153,13 @@
   <script>
     const REALTIME_URL = "https://api.thingspeak.com/channels/3100459/feeds.json?api_key=EJT8IT4IGE9JXX1X&results=15";
 
+
+    const chartTypeSelect = document.getElementById("chartType");
+
+
     const doorToggleBtn = document.getElementById("doorToggleBtn");
     doorToggleBtn.addEventListener("click", () => {
-      window.open("index16.html", "_blank");
+      window.open("dashboard.html", "_blank");
     });
 
     // Realtime sensor elements
@@ -172,23 +188,45 @@
     const alldataSection = document.getElementById("alldataSection");
     const graphsSection = document.getElementById("graphsSection");
 
-    // Tabs
-    realtimeTab.addEventListener("click", () => {
-      realtimeSection.classList.remove("hidden");
-      alldataSection.classList.add("hidden");
-      graphsSection.classList.add("hidden");
-    });
-    alldataTab.addEventListener("click", () => {
-      alldataSection.classList.remove("hidden");
-      realtimeSection.classList.add("hidden");
-      graphsSection.classList.add("hidden");
-    });
-    graphsTab.addEventListener("click", () => {
-      graphsSection.classList.remove("hidden");
-      realtimeSection.classList.add("hidden");
-      alldataSection.classList.add("hidden");
-      fetchGraphData();
-    });
+
+
+    function setActiveTab(activeBtn) {
+  [realtimeTab, alldataTab, graphsTab].forEach(btn => {
+    btn.classList.remove("border-b-2", "border-blue-600", "text-blue-600");
+    btn.classList.add("text-gray-600");
+  });
+
+  activeBtn.classList.add("border-b-2", "border-blue-600", "text-blue-600");
+  activeBtn.classList.remove("text-gray-600");
+}
+
+
+realtimeTab.addEventListener("click", () => {
+  setActiveTab(realtimeTab);
+  realtimeSection.classList.remove("hidden");
+  alldataSection.classList.add("hidden");
+  graphsSection.classList.add("hidden");
+  chartTypeSelect.classList.add("hidden");
+});
+
+alldataTab.addEventListener("click", () => {
+  setActiveTab(alldataTab);
+  alldataSection.classList.remove("hidden");
+  realtimeSection.classList.add("hidden");
+  graphsSection.classList.add("hidden");
+  chartTypeSelect.classList.add("hidden");
+});
+
+graphsTab.addEventListener("click", () => {
+  setActiveTab(graphsTab);
+  graphsSection.classList.remove("hidden");
+  realtimeSection.classList.add("hidden");
+  alldataSection.classList.add("hidden");
+  chartTypeSelect.classList.remove("hidden");
+  fetchGraphData();
+});
+
+
 
     async function fetchRealtimeData() {
       try {
@@ -254,46 +292,48 @@
 
     // Graph.js
     let chartInstance;
-    async function fetchGraphData() {
-      try {
-        const res = await fetch(REALTIME_URL);
-        const data = await res.json();
-        const feeds = data.feeds;
+   async function fetchGraphData() {
+  try {
+    const res = await fetch(REALTIME_URL);
+    const data = await res.json();
+    const feeds = data.feeds;
 
-        const labels = feeds.map(f => new Date(f.created_at).toLocaleTimeString());
-        const phData = feeds.map(f => Number(f.field1));
-        const turbidityData = feeds.map(f => Number(f.field2));
-        const waterLevelData = feeds.map(f => Number(f.field3));
-        const tdsData = feeds.map(f => Number(f.field4));
-        const flowRateData = feeds.map(f => Number(f.field5));
+    const labels = feeds.map(f => new Date(f.created_at).toLocaleTimeString());
+    const phData = feeds.map(f => Number(f.field1));
+    const turbidityData = feeds.map(f => Number(f.field2));
+    const waterLevelData = feeds.map(f => Number(f.field3));
+    const tdsData = feeds.map(f => Number(f.field4));
 
-        const ctx = document.getElementById("sensorChart").getContext("2d");
-        if(chartInstance) chartInstance.destroy();
+    const ctx = document.getElementById("sensorChart").getContext("2d");
+    ctx.canvas.parentNode.style.maxHeight = "500px"; // Adjust as needed
+ctx.canvas.parentNode.style.height = "500px"; 
+    if(chartInstance) chartInstance.destroy();
 
-        chartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              { label: 'PH', data: phData, borderColor: 'blue', fill: false },
-              { label: 'Turbidity', data: turbidityData, borderColor: 'green', fill: false },
-              { label: 'Water Level', data: waterLevelData, borderColor: 'purple', fill: false },
-              { label: 'TDS', data: tdsData, borderColor: 'orange', fill: false },
-            ]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: 'top' }
-            },
-            scales: { x: { display: true }, y: { display: true } }
-          }
-        });
-
-      } catch (err) {
-        console.error(err);
+    chartInstance = new Chart(ctx, {
+      type: chartTypeSelect.value, // Dynamic chart type
+      data: {
+        labels,
+        datasets: [
+          { label: 'PH', data: phData, borderColor: 'blue', backgroundColor: 'rgba(54,162,235,0.4)', fill: chartTypeSelect.value === 'line' ? false : true },
+          { label: 'Turbidity', data: turbidityData, borderColor: 'green', backgroundColor: 'rgba(75,192,192,0.4)', fill: chartTypeSelect.value === 'line' ? false : true },
+          { label: 'Water Level', data: waterLevelData, borderColor: 'purple', backgroundColor: 'rgba(153,102,255,0.4)', fill: chartTypeSelect.value === 'line' ? false : true },
+          { label: 'TDS', data: tdsData, borderColor: 'orange', backgroundColor: 'rgba(255,159,64,0.4)', fill: chartTypeSelect.value === 'line' ? false : true },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'top' }, title: { display: true, text: `${chartTypeSelect.value.charAt(0).toUpperCase() + chartTypeSelect.value.slice(1)} Chart` } },
+        scales: chartTypeSelect.value === 'radar' ? {} : { x: { display: true }, y: { display: true } }
       }
-    }
+    });
+
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+// Update chart when type changes
+chartTypeSelect.addEventListener("change", fetchGraphData);
 
     fetchRealtimeData();
     fetchAllData();
