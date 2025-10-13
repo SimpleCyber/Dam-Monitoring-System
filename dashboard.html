@@ -1011,7 +1011,7 @@
       async function fetchSensorData() {
         try {
           const response = await fetch(
-            "https://api.thingspeak.com/channels/3100459/feeds.json?api_key=EJT8IT4IGE9JXX1X&results=1"
+            "https://api.thingspeak.com/channels/3112170/feeds.json?api_key=FMR1YTXU5UX0Z7E7&results=1"
           );
           const data = await response.json();
 
@@ -1039,76 +1039,76 @@
       const mouse = new THREE.Vector2();
       let hoveredSensor = null;
 
-function onMouseMove(event) {
-  // Calculate mouse position in normalized device coordinates (-1 to +1)
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  
-  // Update the raycaster
-  raycaster.setFromCamera(mouse, camera);
-  
-  // Calculate objects intersecting the picking ray
-  const intersects = raycaster.intersectObjects(sensors);
-  
-  const tooltip = document.getElementById('sensorTooltip');
-  
-  if (intersects.length > 0) {
-    const sensor = intersects[0].object;
-    hoveredSensor = sensor;
-    
-    // Update tooltip content based on sensor
-    const sensorIndex = sensor.userData.index;
-    let sensorName, sensorValue, dataLabel, dataUnit;
-    
-    switch(sensorIndex) {
-      case 0:
-        sensorName = "Water Level Sensor";
-        dataLabel = "Water Level:";
-        sensorValue = sensorData.waterLevel;
-        dataUnit = "m";
-        break;
-      case 1:
-        sensorName = "pH Sensor";
-        dataLabel = "pH:";
-        sensorValue = sensorData.pH;
-        dataUnit = "";
-        break;
-      case 2:
-        sensorName = "Turbidity Sensor";
-        dataLabel = "Turbidity:";
-        sensorValue = sensorData.turbidity;
-        dataUnit = "NTU";
-        break;
-      case 3:
-        sensorName = "TDS Sensor";
-        dataLabel = "TDS:";
-        sensorValue = sensorData.tds;
-        dataUnit = "ppm";
-        break;
-    }
-    
-    // Update tooltip with only the specific sensor data
-    document.getElementById('tooltipSensorName').textContent = sensorName;
-    document.getElementById('tooltipDataLabel').textContent = dataLabel;
-    document.getElementById('tooltipDataValue').textContent = sensorValue;
-    document.getElementById('tooltipDataUnit').textContent = dataUnit;
-    
-    // Position and show tooltip
-    tooltip.style.display = 'block';
-    tooltip.style.left = (event.clientX + 15) + 'px';
-    tooltip.style.top = (event.clientY - 15) + 'px';
-    
-    // Add glow effect to hovered sensor
-    sensor.material.emissiveIntensity = 0.8;
-  } else {
-    // Hide tooltip and reset sensor glow
-    tooltip.style.display = 'none';
-    if (hoveredSensor) {
-      hoveredSensor.material.emissiveIntensity = 0.3;
-      hoveredSensor = null;
-    }
-  }
-}
+      function onMouseMove(event) {
+        // Calculate mouse position in normalized device coordinates (-1 to +1)
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // Update the raycaster
+        raycaster.setFromCamera(mouse, camera);
+
+        // Calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObjects(sensors);
+
+        const tooltip = document.getElementById("sensorTooltip");
+
+        if (intersects.length > 0) {
+          const sensor = intersects[0].object;
+          hoveredSensor = sensor;
+
+          // Update tooltip content based on sensor
+          const sensorIndex = sensor.userData.index;
+          let sensorName, sensorValue, dataLabel, dataUnit;
+
+          switch (sensorIndex) {
+            case 0:
+              sensorName = "Water Level Sensor";
+              dataLabel = "Water Level:";
+              sensorValue = sensorData.waterLevel;
+              dataUnit = "m";
+              break;
+            case 1:
+              sensorName = "pH Sensor";
+              dataLabel = "pH:";
+              sensorValue = sensorData.pH;
+              dataUnit = "";
+              break;
+            case 2:
+              sensorName = "Turbidity Sensor";
+              dataLabel = "Turbidity:";
+              sensorValue = sensorData.turbidity;
+              dataUnit = "NTU";
+              break;
+            case 3:
+              sensorName = "TDS Sensor";
+              dataLabel = "TDS:";
+              sensorValue = sensorData.tds;
+              dataUnit = "ppm";
+              break;
+          }
+
+          // Update tooltip with only the specific sensor data
+          document.getElementById("tooltipSensorName").textContent = sensorName;
+          document.getElementById("tooltipDataLabel").textContent = dataLabel;
+          document.getElementById("tooltipDataValue").textContent = sensorValue;
+          document.getElementById("tooltipDataUnit").textContent = dataUnit;
+
+          // Position and show tooltip
+          tooltip.style.display = "block";
+          tooltip.style.left = event.clientX + 15 + "px";
+          tooltip.style.top = event.clientY - 15 + "px";
+
+          // Add glow effect to hovered sensor
+          sensor.material.emissiveIntensity = 0.8;
+        } else {
+          // Hide tooltip and reset sensor glow
+          tooltip.style.display = "none";
+          if (hoveredSensor) {
+            hoveredSensor.material.emissiveIntensity = 0.3;
+            hoveredSensor = null;
+          }
+        }
+      }
 
       window.addEventListener("mousemove", onMouseMove, false);
 

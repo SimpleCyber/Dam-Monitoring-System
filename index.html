@@ -1,278 +1,325 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dam Water Monitoring System</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-100 font-sans h-screen flex flex-col">
-
-  <!-- Header -->
-  <header class="flex justify-between items-center px-6 py-3 bg-white shadow">
-    <h1 class="text-lg font-bold">Dam Water Monitoring System</h1>
-    <div class="flex items-center space-x-4">
-      <button id="doorToggleBtn" class="px-3 py-1 rounded-lg text-white text-sm bg-blue-600">
-        3D Map
-      </button>
-      <div class="w-10 h-10 rounded-full border flex items-center justify-center">
-        <i class="fa-solid fa-water text-blue-700"></i>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dam Water Monitoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-100 font-sans h-screen flex flex-col">
+    <!-- Header -->
+    <header class="flex justify-between items-center px-6 py-3 bg-white shadow">
+      <h1 class="text-lg font-bold">Dam Water Monitoring System</h1>
+      <div class="flex items-center space-x-4">
+        <button
+          id="doorToggleBtn"
+          class="px-3 py-1 rounded-lg text-white text-sm bg-blue-600"
+        >
+          3D Map
+        </button>
+        <div
+          class="w-10 h-10 rounded-full border flex items-center justify-center"
+        >
+          <i class="fa-solid fa-water text-blue-700"></i>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- Main -->
-  <main class="flex-1 grid grid-cols-3 gap-4 p-6 overflow-hidden">
-    <!-- Left Section -->
-    <section class="col-span-2 bg-white p-4 rounded-xl shadow flex flex-col">
-
-      <!-- Tabs -->
-<!-- Tabs -->
-<div class="flex border-b mb-4 items-center">
-  <button id="realtimeTab" class="px-4 py-2 font-semibold border-b-2 border-blue-600">Real-Time</button>
-  <button id="alldataTab" class="px-4 py-2 font-semibold text-gray-600">All Data</button>
-  <button id="graphsTab" class="px-4 py-2 font-semibold text-gray-600 flex items-center">
-    Graphs
-    <!-- Chart Type Selector (hidden until Graphs tab active) -->
-    <select id="chartType" class="ml-3 border rounded-lg p-1 text-sm hidden">
-      <option value="line">Line</option>
-      <option value="bar">Bar</option>
-      <option value="radar">Radar</option>
-    </select>
-  </button>
-</div>
-
-
-      <!-- Real-Time Section -->
-      <div id="realtimeSection" class="flex-1 space-y-4">
-        <!-- PH Sensor -->
-        <div class="p-3 bg-blue-50 rounded-lg shadow border-l-4 border-blue-500">
-          <h3 class="font-bold text-blue-700">PH Sensor</h3>
-          <p id="phValue" class="text-lg font-semibold">Loading...</p>
-        </div>
-
-        <!-- Turbidity Sensor -->
-        <div class="p-3 bg-green-50 rounded-lg shadow border-l-4 border-green-500">
-          <h3 class="font-bold text-green-700">Turbidity Sensor</h3>
-          <p id="turbidityValue" class="text-lg font-semibold">Loading...</p>
-        </div>
-
-        <!-- Water Level Sensor -->
-        <div class="p-3 bg-purple-50 rounded-lg shadow border-l-4 border-purple-500">
-          <h3 class="font-bold text-purple-700">Water Level Sensor</h3>
-          <p id="waterLevelValue" class="text-lg font-semibold">Loading...</p>
-        </div>
-
-        <!-- TDS Meter Sensor -->
-        <div class="p-3 bg-yellow-50 rounded-lg shadow border-l-4 border-yellow-500">
-          <h3 class="font-bold text-yellow-700">TDS Meter Sensor</h3>
-          <p id="tdsValue" class="text-lg font-semibold">Loading...</p>
-        </div>
-
-      </div>
-
-      <!-- All Data Section -->
-      <div id="alldataSection" class="hidden flex-1 flex flex-col">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold">All Sensor Data</h2>
-          <div class="flex items-center space-x-3">
-            <select id="fieldFilter" class="border rounded-lg p-1 text-sm">
-              <option value="all">All Fields</option>
-              <option value="ph">PH Sensor</option>
-              <option value="turbidity">Turbidity Sensor</option>
-              <option value="waterlevel">Water Level Sensor</option>
-              <option value="tds">TDS Meter</option>
+    <!-- Main -->
+    <main class="flex-1 grid grid-cols-3 gap-4 p-6 overflow-hidden">
+      <!-- Left Section -->
+      <section class="col-span-2 bg-white p-4 rounded-xl shadow flex flex-col">
+        <!-- Tabs -->
+        <!-- Tabs -->
+        <div class="flex border-b mb-4 items-center">
+          <button
+            id="realtimeTab"
+            class="px-4 py-2 font-semibold border-b-2 border-blue-600"
+          >
+            Real-Time
+          </button>
+          <button id="alldataTab" class="px-4 py-2 font-semibold text-gray-600">
+            All Data
+          </button>
+          <button
+            id="graphsTab"
+            class="px-4 py-2 font-semibold text-gray-600 flex items-center"
+          >
+            Graphs
+            <!-- Chart Type Selector (hidden until Graphs tab active) -->
+            <select
+              id="chartType"
+              class="ml-3 border rounded-lg p-1 text-sm hidden"
+            >
+              <option value="line">Line</option>
+              <option value="bar">Bar</option>
+              <option value="radar">Radar</option>
             </select>
-            <select id="sortOrder" class="border rounded-lg p-1 text-sm">
-              <option value="desc">Newest First</option>
-              <option value="asc">Oldest First</option>
-            </select>
-            <button id="refreshBtn" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm">
-              <i class="fa-solid fa-rotate"></i> Refresh
-            </button>
+          </button>
+        </div>
+
+        <!-- Real-Time Section -->
+        <div id="realtimeSection" class="flex-1 space-y-4">
+          <!-- PH Sensor -->
+          <div
+            class="p-3 bg-blue-50 rounded-lg shadow border-l-4 border-blue-500"
+          >
+            <h3 class="font-bold text-blue-700">PH Sensor</h3>
+            <p id="phValue" class="text-lg font-semibold">Loading...</p>
+          </div>
+
+          <!-- Turbidity Sensor -->
+          <div
+            class="p-3 bg-green-50 rounded-lg shadow border-l-4 border-green-500"
+          >
+            <h3 class="font-bold text-green-700">Turbidity Sensor</h3>
+            <p id="turbidityValue" class="text-lg font-semibold">Loading...</p>
+          </div>
+
+          <!-- Water Level Sensor -->
+          <div
+            class="p-3 bg-purple-50 rounded-lg shadow border-l-4 border-purple-500"
+          >
+            <h3 class="font-bold text-purple-700">Water Level Sensor</h3>
+            <p id="waterLevelValue" class="text-lg font-semibold">Loading...</p>
+          </div>
+
+          <!-- TDS Meter Sensor -->
+          <div
+            class="p-3 bg-yellow-50 rounded-lg shadow border-l-4 border-yellow-500"
+          >
+            <h3 class="font-bold text-yellow-700">TDS Meter Sensor</h3>
+            <p id="tdsValue" class="text-lg font-semibold">Loading...</p>
           </div>
         </div>
 
-        <div id="notificationContent" class="border-2 border-dashed rounded-lg p-4 overflow-y-auto max-h-[500px]">
-          <div id="sensorFeed" class="space-y-4 text-gray-700"></div>
+        <!-- All Data Section -->
+        <div id="alldataSection" class="hidden flex-1 flex flex-col">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">All Sensor Data</h2>
+            <div class="flex items-center space-x-3">
+              <select id="fieldFilter" class="border rounded-lg p-1 text-sm">
+                <option value="all">All Fields</option>
+                <option value="ph">PH Sensor</option>
+                <option value="turbidity">Turbidity Sensor</option>
+                <option value="waterlevel">Water Level Sensor</option>
+                <option value="tds">TDS Meter</option>
+              </select>
+              <select id="sortOrder" class="border rounded-lg p-1 text-sm">
+                <option value="desc">Newest First</option>
+                <option value="asc">Oldest First</option>
+              </select>
+              <button
+                id="refreshBtn"
+                class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm"
+              >
+                <i class="fa-solid fa-rotate"></i> Refresh
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="notificationContent"
+            class="border-2 border-dashed rounded-lg p-4 overflow-y-auto max-h-[500px]"
+          >
+            <div id="sensorFeed" class="space-y-4 text-gray-700"></div>
+          </div>
         </div>
-      </div>
 
-      <!-- Graph Section -->
-<div id="graphsSection" class="hidden flex-1 flex flex-col">
-  <div class="flex-1">
-    <canvas id="sensorChart" class="bg-white p-4 rounded-xl shadow w-full h-full"></canvas>
-  </div>
-</div>
-
-
-    </section>
-
-    <!-- Right Section -->
-    <aside class="flex flex-col space-y-4">
-      <!-- Live Recording -->
-      <div class="bg-white p-4 rounded-xl shadow flex-1 flex flex-col">
-        <h2 class="font-semibold mb-2">Live Recording</h2>
-        <div id="jitsi-container" class="flex-1 rounded-xl border overflow-hidden"></div>
-      </div>
-
-      <!-- Live Location -->
-      <div class="bg-white p-4 rounded-xl shadow flex-1 flex flex-col">
-        <h2 class="font-semibold mb-2">Live Location</h2>
-        <div class="flex-1 border rounded-lg overflow-hidden">
-          <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241317.1160991644!2d72.7411019!3d19.0821978!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7b63c480f5d03%3A0xf9b4316b1b85d3f6!2sMumbai!5e0!3m2!1sen!2sin!4v1700000000000"
-            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        <!-- Graph Section -->
+        <div id="graphsSection" class="hidden flex-1 flex flex-col">
+          <div class="flex-1">
+            <canvas
+              id="sensorChart"
+              class="bg-white p-4 rounded-xl shadow w-full h-full"
+            ></canvas>
+          </div>
         </div>
-      </div>
-    </aside>
-  </main>
+      </section>
 
-  <!-- Jitsi API -->
-  <script src="https://meet.jit.si/external_api.js"></script>
-  <script>
-    const domain = "meet.jit.si";
-    const options = {
-      roomName: "DamWaterMonitoringLive",
-      width: "100%",
-      height: "100%",
-      parentNode: document.querySelector('#jitsi-container'),
-      configOverwrite: { startWithAudioMuted: true, startWithVideoMuted: false }
-    };
-    const api = new JitsiMeetExternalAPI(domain, options);
-  </script>
+      <!-- Right Section -->
+      <aside class="flex flex-col space-y-4">
+        <!-- Live Recording -->
+        <div class="bg-white p-4 rounded-xl shadow flex-1 flex flex-col">
+          <h2 class="font-semibold mb-2">Live Recording</h2>
+          <div
+            id="jitsi-container"
+            class="flex-1 rounded-xl border overflow-hidden"
+          ></div>
+        </div>
 
-  <!-- ThingSpeak Fetch & Chart.js -->
-  <script>
-    const REALTIME_URL = "https://api.thingspeak.com/channels/3100459/feeds.json?api_key=EJT8IT4IGE9JXX1X&results=15";
+        <!-- Live Location -->
+        <div class="bg-white p-4 rounded-xl shadow flex-1 flex flex-col">
+          <h2 class="font-semibold mb-2">Live Location</h2>
+          <div class="flex-1 border rounded-lg overflow-hidden">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241317.1160991644!2d72.7411019!3d19.0821978!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7b63c480f5d03%3A0xf9b4316b1b85d3f6!2sMumbai!5e0!3m2!1sen!2sin!4v1700000000000"
+              width="100%"
+              height="100%"
+              style="border: 0"
+              allowfullscreen=""
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+      </aside>
+    </main>
 
+    <!-- Jitsi API -->
+    <script src="https://meet.jit.si/external_api.js"></script>
+    <script>
+      const domain = "meet.jit.si";
+      const options = {
+        roomName: "DamWaterMonitoringLive",
+        width: "100%",
+        height: "100%",
+        parentNode: document.querySelector("#jitsi-container"),
+        configOverwrite: {
+          startWithAudioMuted: true,
+          startWithVideoMuted: false,
+        },
+      };
+      const api = new JitsiMeetExternalAPI(domain, options);
+    </script>
 
-    const chartTypeSelect = document.getElementById("chartType");
+    <!-- ThingSpeak Fetch & Chart.js -->
+    <script>
+      const REALTIME_URL =
+        "https://api.thingspeak.com/channels/3112170/feeds.json?api_key=FMR1YTXU5UX0Z7E7&results=5";
 
+      const chartTypeSelect = document.getElementById("chartType");
 
-    const doorToggleBtn = document.getElementById("doorToggleBtn");
-    doorToggleBtn.addEventListener("click", () => {
-      window.open("dashboard.html", "_blank");
-    });
+      const doorToggleBtn = document.getElementById("doorToggleBtn");
+      doorToggleBtn.addEventListener("click", () => {
+        window.open("dashboard.html", "_blank");
+      });
 
-    // Realtime sensor elements
-    const phValue = document.getElementById("phValue");
-    const turbidityValue = document.getElementById("turbidityValue");
-    const waterLevelValue = document.getElementById("waterLevelValue");
-    const tdsValue = document.getElementById("tdsValue");
-    const flowRateValue = document.getElementById("flowRateValue");
+      // Realtime sensor elements
+      const phValue = document.getElementById("phValue");
+      const turbidityValue = document.getElementById("turbidityValue");
+      const waterLevelValue = document.getElementById("waterLevelValue");
+      const tdsValue = document.getElementById("tdsValue");
+      const flowRateValue = document.getElementById("flowRateValue");
 
-    const phTime = document.getElementById("phTime");
-    const turbidityTime = document.getElementById("turbidityTime");
-    const waterLevelTime = document.getElementById("waterLevelTime");
-    const tdsTime = document.getElementById("tdsTime");
-    const flowRateTime = document.getElementById("flowRateTime");
+      const phTime = document.getElementById("phTime");
+      const turbidityTime = document.getElementById("turbidityTime");
+      const waterLevelTime = document.getElementById("waterLevelTime");
+      const tdsTime = document.getElementById("tdsTime");
+      const flowRateTime = document.getElementById("flowRateTime");
 
-    const sensorFeed = document.getElementById("sensorFeed");
-    const fieldFilter = document.getElementById("fieldFilter");
-    const sortOrder = document.getElementById("sortOrder");
-    const refreshBtn = document.getElementById("refreshBtn");
+      const sensorFeed = document.getElementById("sensorFeed");
+      const fieldFilter = document.getElementById("fieldFilter");
+      const sortOrder = document.getElementById("sortOrder");
+      const refreshBtn = document.getElementById("refreshBtn");
 
-    const realtimeTab = document.getElementById("realtimeTab");
-    const alldataTab = document.getElementById("alldataTab");
-    const graphsTab = document.getElementById("graphsTab");
+      const realtimeTab = document.getElementById("realtimeTab");
+      const alldataTab = document.getElementById("alldataTab");
+      const graphsTab = document.getElementById("graphsTab");
 
-    const realtimeSection = document.getElementById("realtimeSection");
-    const alldataSection = document.getElementById("alldataSection");
-    const graphsSection = document.getElementById("graphsSection");
+      const realtimeSection = document.getElementById("realtimeSection");
+      const alldataSection = document.getElementById("alldataSection");
+      const graphsSection = document.getElementById("graphsSection");
 
+      function setActiveTab(activeBtn) {
+        [realtimeTab, alldataTab, graphsTab].forEach((btn) => {
+          btn.classList.remove(
+            "border-b-2",
+            "border-blue-600",
+            "text-blue-600"
+          );
+          btn.classList.add("text-gray-600");
+        });
 
-
-    function setActiveTab(activeBtn) {
-  [realtimeTab, alldataTab, graphsTab].forEach(btn => {
-    btn.classList.remove("border-b-2", "border-blue-600", "text-blue-600");
-    btn.classList.add("text-gray-600");
-  });
-
-  activeBtn.classList.add("border-b-2", "border-blue-600", "text-blue-600");
-  activeBtn.classList.remove("text-gray-600");
-}
-
-
-realtimeTab.addEventListener("click", () => {
-  setActiveTab(realtimeTab);
-  realtimeSection.classList.remove("hidden");
-  alldataSection.classList.add("hidden");
-  graphsSection.classList.add("hidden");
-  chartTypeSelect.classList.add("hidden");
-});
-
-alldataTab.addEventListener("click", () => {
-  setActiveTab(alldataTab);
-  alldataSection.classList.remove("hidden");
-  realtimeSection.classList.add("hidden");
-  graphsSection.classList.add("hidden");
-  chartTypeSelect.classList.add("hidden");
-});
-
-graphsTab.addEventListener("click", () => {
-  setActiveTab(graphsTab);
-  graphsSection.classList.remove("hidden");
-  realtimeSection.classList.add("hidden");
-  alldataSection.classList.add("hidden");
-  chartTypeSelect.classList.remove("hidden");
-  fetchGraphData();
-});
-
-
-
-    async function fetchRealtimeData() {
-      try {
-        const res = await fetch(REALTIME_URL);
-        const data = await res.json();
-        const feed = data.feeds[data.feeds.length - 1];
-
-        phValue.textContent = feed.field1 || "N/A";
-        turbidityValue.textContent = feed.field2 || "N/A";
-        waterLevelValue.textContent = feed.field3 || "N/A";
-        tdsValue.textContent = feed.field4 || "N/A";
-        flowRateValue.textContent = feed.field5 || "N/A";
-
-        const time = new Date(feed.created_at).toLocaleString();
-        phTime.textContent = `Last updated: ${time}`;
-        turbidityTime.textContent = `Last updated: ${time}`;
-        waterLevelTime.textContent = `Last updated: ${time}`;
-        tdsTime.textContent = `Last updated: ${time}`;
-        flowRateTime.textContent = `Last updated: ${time}`;
-      } catch (err) {
-        console.error(err);
+        activeBtn.classList.add(
+          "border-b-2",
+          "border-blue-600",
+          "text-blue-600"
+        );
+        activeBtn.classList.remove("text-gray-600");
       }
-    }
 
-    async function fetchAllData() {
-      try {
-        const res = await fetch(REALTIME_URL);
-        const data = await res.json();
-        let feeds = data.feeds.reverse();
+      realtimeTab.addEventListener("click", () => {
+        setActiveTab(realtimeTab);
+        realtimeSection.classList.remove("hidden");
+        alldataSection.classList.add("hidden");
+        graphsSection.classList.add("hidden");
+        chartTypeSelect.classList.add("hidden");
+      });
 
-        const filter = fieldFilter.value;
-        if (filter === "ph") feeds = feeds.filter(f => f.field1);
-        else if (filter === "turbidity") feeds = feeds.filter(f => f.field2);
-        else if (filter === "waterlevel") feeds = feeds.filter(f => f.field3);
-        else if (filter === "tds") feeds = feeds.filter(f => f.field4);
-        else if (filter === "flowrate") feeds = feeds.filter(f => f.field5);
+      alldataTab.addEventListener("click", () => {
+        setActiveTab(alldataTab);
+        alldataSection.classList.remove("hidden");
+        realtimeSection.classList.add("hidden");
+        graphsSection.classList.add("hidden");
+        chartTypeSelect.classList.add("hidden");
+      });
 
-        renderFeed(feeds);
-      } catch (err) {
-        console.error(err);
+      graphsTab.addEventListener("click", () => {
+        setActiveTab(graphsTab);
+        graphsSection.classList.remove("hidden");
+        realtimeSection.classList.add("hidden");
+        alldataSection.classList.add("hidden");
+        chartTypeSelect.classList.remove("hidden");
+        fetchGraphData();
+      });
+
+      async function fetchRealtimeData() {
+        try {
+          const res = await fetch(REALTIME_URL);
+          const data = await res.json();
+          const feed = data.feeds[data.feeds.length - 1];
+
+          phValue.textContent = feed.field1 || "N/A";
+          turbidityValue.textContent = feed.field2 || "N/A";
+          waterLevelValue.textContent = feed.field3 || "N/A";
+          tdsValue.textContent = feed.field4 || "N/A";
+          flowRateValue.textContent = feed.field5 || "N/A";
+
+          const time = new Date(feed.created_at).toLocaleString();
+          phTime.textContent = `Last updated: ${time}`;
+          turbidityTime.textContent = `Last updated: ${time}`;
+          waterLevelTime.textContent = `Last updated: ${time}`;
+          tdsTime.textContent = `Last updated: ${time}`;
+          flowRateTime.textContent = `Last updated: ${time}`;
+        } catch (err) {
+          console.error(err);
+        }
       }
-    }
 
-    function renderFeed(feeds) {
-      sensorFeed.innerHTML = "";
-      feeds.forEach(feed => {
-        const time = new Date(feed.created_at).toLocaleString();
-        const card = document.createElement("div");
-        card.className = "border rounded-lg p-3 shadow-sm bg-gray-50";
-        card.innerHTML = `
+      async function fetchAllData() {
+        try {
+          const res = await fetch(REALTIME_URL);
+          const data = await res.json();
+          let feeds = data.feeds.reverse();
+
+          const filter = fieldFilter.value;
+          if (filter === "ph") feeds = feeds.filter((f) => f.field1);
+          else if (filter === "turbidity")
+            feeds = feeds.filter((f) => f.field2);
+          else if (filter === "waterlevel")
+            feeds = feeds.filter((f) => f.field3);
+          else if (filter === "tds") feeds = feeds.filter((f) => f.field4);
+          else if (filter === "flowrate") feeds = feeds.filter((f) => f.field5);
+
+          renderFeed(feeds);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function renderFeed(feeds) {
+        sensorFeed.innerHTML = "";
+        feeds.forEach((feed) => {
+          const time = new Date(feed.created_at).toLocaleString();
+          const card = document.createElement("div");
+          card.className = "border rounded-lg p-3 shadow-sm bg-gray-50";
+          card.innerHTML = `
           <div class="flex justify-between">
             <h3 class="font-semibold text-blue-800">Entry #${feed.entry_id}</h3>
             <p class="text-sm text-gray-500">${time}</p>
@@ -282,60 +329,96 @@ graphsTab.addEventListener("click", () => {
           <p><b>Water Level:</b> ${feed.field3 || "N/A"}</p>
           <p><b>TDS:</b> ${feed.field4 || "N/A"}</p>
         `;
-        sensorFeed.appendChild(card);
-      });
-    }
-
-    // Graph.js
-    let chartInstance;
-   async function fetchGraphData() {
-  try {
-    const res = await fetch(REALTIME_URL);
-    const data = await res.json();
-    const feeds = data.feeds;
-
-    const labels = feeds.map(f => new Date(f.created_at).toLocaleTimeString());
-    const phData = feeds.map(f => Number(f.field1));
-    const turbidityData = feeds.map(f => Number(f.field2));
-    const waterLevelData = feeds.map(f => Number(f.field3));
-    const tdsData = feeds.map(f => Number(f.field4));
-
-    const ctx = document.getElementById("sensorChart").getContext("2d");
-    ctx.canvas.parentNode.style.maxHeight = "500px"; // Adjust as needed
-ctx.canvas.parentNode.style.height = "500px"; 
-    if(chartInstance) chartInstance.destroy();
-
-    chartInstance = new Chart(ctx, {
-      type: chartTypeSelect.value, // Dynamic chart type
-      data: {
-        labels,
-        datasets: [
-          { label: 'PH', data: phData, borderColor: 'blue', backgroundColor: 'rgba(54,162,235,0.4)', fill: chartTypeSelect.value === 'line' ? false : true },
-          { label: 'Turbidity', data: turbidityData, borderColor: 'green', backgroundColor: 'rgba(75,192,192,0.4)', fill: chartTypeSelect.value === 'line' ? false : true },
-          { label: 'Water Level', data: waterLevelData, borderColor: 'purple', backgroundColor: 'rgba(153,102,255,0.4)', fill: chartTypeSelect.value === 'line' ? false : true },
-          { label: 'TDS', data: tdsData, borderColor: 'orange', backgroundColor: 'rgba(255,159,64,0.4)', fill: chartTypeSelect.value === 'line' ? false : true },
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'top' }, title: { display: true, text: `${chartTypeSelect.value.charAt(0).toUpperCase() + chartTypeSelect.value.slice(1)} Chart` } },
-        scales: chartTypeSelect.value === 'radar' ? {} : { x: { display: true }, y: { display: true } }
+          sensorFeed.appendChild(card);
+        });
       }
-    });
 
-  } catch(err) {
-    console.error(err);
-  }
-}
+      // Graph.js
+      let chartInstance;
+      async function fetchGraphData() {
+        try {
+          const res = await fetch(REALTIME_URL);
+          const data = await res.json();
+          const feeds = data.feeds;
 
-// Update chart when type changes
-chartTypeSelect.addEventListener("change", fetchGraphData);
+          const labels = feeds.map((f) =>
+            new Date(f.created_at).toLocaleTimeString()
+          );
+          const phData = feeds.map((f) => Number(f.field1));
+          const turbidityData = feeds.map((f) => Number(f.field2));
+          const waterLevelData = feeds.map((f) => Number(f.field3));
+          const tdsData = feeds.map((f) => Number(f.field4));
 
-    fetchRealtimeData();
-    fetchAllData();
-    setInterval(fetchRealtimeData, 5000);
-    setInterval(fetchAllData, 10000);
-  </script>
+          const ctx = document.getElementById("sensorChart").getContext("2d");
+          ctx.canvas.parentNode.style.maxHeight = "500px"; // Adjust as needed
+          ctx.canvas.parentNode.style.height = "500px";
+          if (chartInstance) chartInstance.destroy();
 
-</body>
+          chartInstance = new Chart(ctx, {
+            type: chartTypeSelect.value, // Dynamic chart type
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "PH",
+                  data: phData,
+                  borderColor: "blue",
+                  backgroundColor: "rgba(54,162,235,0.4)",
+                  fill: chartTypeSelect.value === "line" ? false : true,
+                },
+                {
+                  label: "Turbidity",
+                  data: turbidityData,
+                  borderColor: "green",
+                  backgroundColor: "rgba(75,192,192,0.4)",
+                  fill: chartTypeSelect.value === "line" ? false : true,
+                },
+                {
+                  label: "Water Level",
+                  data: waterLevelData,
+                  borderColor: "purple",
+                  backgroundColor: "rgba(153,102,255,0.4)",
+                  fill: chartTypeSelect.value === "line" ? false : true,
+                },
+                {
+                  label: "TDS",
+                  data: tdsData,
+                  borderColor: "orange",
+                  backgroundColor: "rgba(255,159,64,0.4)",
+                  fill: chartTypeSelect.value === "line" ? false : true,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: "top" },
+                title: {
+                  display: true,
+                  text: `${
+                    chartTypeSelect.value.charAt(0).toUpperCase() +
+                    chartTypeSelect.value.slice(1)
+                  } Chart`,
+                },
+              },
+              scales:
+                chartTypeSelect.value === "radar"
+                  ? {}
+                  : { x: { display: true }, y: { display: true } },
+            },
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      // Update chart when type changes
+      chartTypeSelect.addEventListener("change", fetchGraphData);
+
+      fetchRealtimeData();
+      fetchAllData();
+      setInterval(fetchRealtimeData, 5000);
+      setInterval(fetchAllData, 10000);
+    </script>
+  </body>
 </html>
